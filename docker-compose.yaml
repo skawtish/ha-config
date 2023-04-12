@@ -1,10 +1,26 @@
 version: '3'
 services:
+  nginxpm:
+    container_name: nginxproxymanager
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      # Public HTTP Port:
+      - '80:80'
+      # Public HTTPS Port:
+      - '443:443'
+      # Admin Web Port:
+      - '81:81'
+    volumes:
+      - /opt/nginx-proxy-manager/data:/data
+      - /opt/letsencrypt:/etc/letsencrypt
+
   homeassistant:
     container_name: home-assistant
-    image: homeassistant/home-assistant:stable
+    image: k/homeassistant
+    build: .
     volumes:
-      - /hass/config:/config
+      - /opt/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
       - /dev/serial/by-id:/dev/serial/by-id
     devices:
@@ -12,4 +28,8 @@ services:
     environment:
       - TZ=Europe/London
     restart: unless-stopped
-    network_mode: host
+
+networks:
+  default:
+    external: true
+    name: exposed
