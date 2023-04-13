@@ -1,8 +1,15 @@
 version: '3'
 services:
+  cloudflared: 
+    image: cloudflare/cloudflared 
+    container_name: cloudflare-tunnel 
+    env_file: ./tunnel.env
+    restart: unless-stopped 
+    command: tunnel run 
+
   nginxpm:
-    container_name: nginxproxymanager
     image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginxpm
     restart: unless-stopped
     ports:
       # Public HTTP Port:
@@ -16,8 +23,8 @@ services:
       - /opt/letsencrypt:/etc/letsencrypt
 
   homeassistant:
-    container_name: home-assistant
     image: k/homeassistant
+    container_name: homeassistant
     build: .
     volumes:
       - /opt/homeassistant/config:/config
