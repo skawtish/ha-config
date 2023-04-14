@@ -1,12 +1,13 @@
 version: '3'
-services:
-  cloudflared: 
-    image: cloudflare/cloudflared 
-    container_name: cloudflare-tunnel 
-    env_file: ./tunnel.env
-    restart: unless-stopped 
-    command: tunnel run 
 
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.5.0.0/24
+
+services:
   nginxpm:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: nginxpm
@@ -21,11 +22,30 @@ services:
     volumes:
       - /opt/nginx-proxy-manager/data:/data
       - /opt/letsencrypt:/etc/letsencrypt
+    networks:
+      default:
+        ipv4_address: 10.5.0.21
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "192.168.1.107:53:53/tcp"
+      - "192.168.1.107:53:53/udp"
+      - "192.168.1.107:8080:80/tcp" #ONLY REQUIRED FOR WEB DASHBOARD
+    environment:
+      TZ: 'Europe/London'
+      # WEBPASSWORD: 'set a secure password here or it will be random'
+
+    volumes:
+      - '/opt/pihole/etc-pihole:/etc/pihole'
+      - '/opt/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    restart: unless-stopped
 
   homeassistant:
     image: k/homeassistant
     container_name: homeassistant
-    build: .
+    build: ./homeassistant
     volumes:
       - /opt/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
@@ -35,8 +55,3 @@ services:
     environment:
       - TZ=Europe/London
     restart: unless-stopped
-
-networks:
-  default:
-    external: true
-    name: exposed
