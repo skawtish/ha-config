@@ -13,12 +13,9 @@ services:
     container_name: nginxpm
     restart: unless-stopped
     ports:
-      # Public HTTP Port:
       - '80:80'
-      # Public HTTPS Port:
-      - '443:443'
-      # Admin Web Port:
-      - '81:81'
+      - '443:443' 
+      - '81:81' # web admin
     volumes:
       - /opt/nginx-proxy-manager/data:/data
       - /opt/letsencrypt:/etc/letsencrypt
@@ -29,10 +26,9 @@ services:
     ports:
       - "192.168.1.107:53:53/tcp"
       - "192.168.1.107:53:53/udp"
-      - "192.168.1.107:8080:80/tcp" #ONLY REQUIRED FOR WEB DASHBOARD
+      - "192.168.1.107:8080:80/tcp" # web admin
     environment:
       TZ: 'Europe/London'
-      # WEBPASSWORD: 'set a secure password here or it will be random'
 
     volumes:
       - '/opt/pihole/etc-pihole:/etc/pihole'
