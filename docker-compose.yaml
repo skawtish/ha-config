@@ -50,8 +50,19 @@ services:
       - /opt/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
       - /dev/serial/by-id:/dev/serial/by-id
+    ports:
+      - 8123:8123
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     environment:
       - TZ=Europe/London
     restart: unless-stopped
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    volumes:
+      - /opt/mosquitto:/mosquitto
+    ports:
+      - 1883:1883
+      - 9001:9001
