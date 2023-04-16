@@ -22,9 +22,6 @@ services:
     volumes:
       - /opt/nginx-proxy-manager/data:/data
       - /opt/letsencrypt:/etc/letsencrypt
-    networks:
-      default:
-        ipv4_address: 10.5.0.21
 
   pihole:
     container_name: pihole
