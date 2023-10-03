@@ -8,32 +8,28 @@ networks:
         - subnet: 10.5.0.0/24
 
 services:
+  tunnel:
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    env_file:
+      - tunnel.env
+
   pihole:
     container_name: pihole
-    image: pihole/pihole:latest
-    ports:
-      - "192.168.1.107:53:53/tcp"
-      - "192.168.1.107:53:53/udp"
-      - "192.168.1.107:8080:80/tcp" # web admin
-    environment:
-      TZ: 'Europe/London'
+      image: pihole/pihole:latest
+      ports:
+        - "192.168.1.107:53:53/tcp"
+        - "192.168.1.107:53:53/udp"
+        - "192.168.1.107:8080:80/tcp" # web admin
+      environment:
+        TZ: 'Europe/London'
 
-    volumes:
-      - '/opt/pihole/etc-pihole:/etc/pihole'
-      - '/opt/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
-    restart: unless-stopped
-
-  nginxpm:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginxpm
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '443:443'
-      - '81:81' # web admin
-    volumes:
-      - /opt/nginx-proxy-manager/data:/data
-      - /opt/letsencrypt:/etc/letsencrypt
+      volumes:
+        - '/opt/pihole/etc-pihole:/etc/pihole'
+        - '/opt/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+      restart: unless-stopped
 
   homeassistant:
     image: k/homeassistant
@@ -43,12 +39,14 @@ services:
       - /opt/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
       - /dev/serial/by-id:/dev/serial/by-id
-    ports:
-      - 8123:8123
+        #ports:
+        #- 8123:8123
+        #- 21064:21064 # homekit
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     environment:
       - TZ=Europe/London
+    network_mode: host
     restart: unless-stopped
 
   mosquitto:
@@ -59,3 +57,56 @@ services:
     ports:
       - 1883:1883
       - 9001:9001 # webhooks
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - WEBUI_PORT=8880
+    volumes:
+      - /opt/qbittorrent/themes:/themes
+      - /opt/qbittorrent:/config
+      - /home/kyle/Downloads:/downloads
+    ports:
+      - 6882:6881
+      - 6882:6881/udp
+      - 8880:8880
+    restart: unless-stopped
+
+  babybuddy:
+    image: lscr.io/linuxserver/babybuddy:latest
+    container_name: babybuddy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,https://baby.kylenic.com
+    volumes:
+      - /opt/babybuddy:/config
+    ports:
+      - 8000:8000
+    restart: unless-stopped
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - /opt/jellyfin/config:/config
+      - /opt/jellyfin/tvshows:/data/tvshows
+      - /opt/jellyfin/movies:/data/movies
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+      - 7359:7359/udp #optional
+      - 1900:1900/udp #optional
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
