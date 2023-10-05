@@ -13,23 +13,21 @@ services:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
     command: tunnel run
-    env_file:
-      - tunnel.env
-
+    env_file: tunnel.env
+  
   pihole:
     container_name: pihole
-      image: pihole/pihole:latest
-      ports:
-        - "192.168.1.107:53:53/tcp"
-        - "192.168.1.107:53:53/udp"
-        - "192.168.1.107:8080:80/tcp" # web admin
-      environment:
-        TZ: 'Europe/London'
-
-      volumes:
-        - '/opt/pihole/etc-pihole:/etc/pihole'
-        - '/opt/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
-      restart: unless-stopped
+    image: pihole/pihole:latest
+    ports:
+      - "192.168.1.107:53:53/tcp"
+      - "192.168.1.107:53:53/udp"
+      - "192.168.1.107:8080:80/tcp" # web admin
+    environment:
+      TZ: 'Europe/London'
+    volumes:
+      - '/opt/pihole/etc-pihole:/etc/pihole'
+      - '/opt/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    restart: unless-stopped
 
   homeassistant:
     image: k/homeassistant
